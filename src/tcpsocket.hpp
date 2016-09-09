@@ -16,11 +16,11 @@
 namespace sssocket
 {
 
-  class TcpSocket
-  {
-
   sockaddr_in *getHostByNameIpv4(std::string& host_name, uint16_t port_number = 0);
   sockaddr_in *copyPosixSocketAddressIpv4(const sockaddr *address);
+
+  class TcpSocket
+  {
 
   using buffer_type = SocketBuffer;
   using address_type = std::shared_ptr<sockaddr_in>;
@@ -33,8 +33,6 @@ namespace sssocket
     buffer_type buffer;
     int file_descriptor;
   };
-
-
 
 }
 
