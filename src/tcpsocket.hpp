@@ -32,8 +32,8 @@ namespace sssocket
     void connect(const char* host_name, const char* port);
     void sendString(const std::string& message) const;
     std::unique_ptr<std::string> readString() const;
-    int send(SocketBuffer buffer, int flags = 0) const;
-    int receive(SocketBuffer buffer, int flags = 0) const;
+    int send(void *buffer, int buffer_len, int flags = 0) const;
+    int receive(void *buffer, int buffer_len, int flags = 0) const;
 
   private:
     int file_descriptor;

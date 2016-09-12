@@ -46,15 +46,15 @@ TcpSocket::connect(const char* host_name, const char* port)
 }
 
 int
-TcpSocket::send(SocketBuffer buffer, int flags) const
+TcpSocket::send(void *buffer, int buffer_len, int flags) const
 {
-  return ::send(file_descriptor, buffer.data(), buffer.size(), flags);
+  return ::send(file_descriptor, buffer, buffer_len, flags);
 }
 
 int
-TcpSocket::receive(SocketBuffer buffer, int flags) const
+TcpSocket::receive(void *buffer, int buffer_len, int flags) const
 {
-  return ::recv(file_descriptor, buffer.data(), buffer.size(), flags);
+  return ::recv(file_descriptor, buffer, buffer_len, flags);
 }
 
 void
