@@ -1,48 +1,97 @@
 #include "tcpsocket.hpp"
+#include "socketexception.hpp"
 #include <cstring>
+#include <sstream>
+#include <iostream>
+#include <iterator>
+#include <vector>
+#include <unistd.h>
 
 using namespace sssocket;
 
-sockaddr_in *
-getHostAddressByNameIpv4(std::string& host_name, uint16_t port_number = 0)
+TcpSocket::TcpSocket()
+  : file_descriptor(-1)
+  , host_name("")
+  , isConnected(false)
 {
-  sockaddr_in * host_address = nullptr;
-  addrinfo * address_info_list = nullptr;
-
-  std::string port_number_string = std::to_string(port_number);
-
-  addrinfo pattern_for_finding_host;
-  pattern_for_finding_host.ai_family = AF_INET; /* set to ipv4 */
-  pattern_for_finding_host.ai_socktype = SOCK_STREAM; /* set to stream opposed to SOCK_DGRAM */
-  pattern_for_finding_host.ai_flags = 0;
-
-  int error_code = 0;
-
-  if (port_number == 0) {
-    error_code = getaddrinfo(host_name.c_str(),
-                              NULL,
-                              &pattern_for_finding_host,
-                              &address_info_list);
-  } else {
-    error_code = getaddrinfo(host_name.c_str(),
-                              port_number_string.c_str(),
-                              &pattern_for_finding_host,
-                              &address_info_list);
-  }
-
-  if (error_code == 0) {
-    host_address = copyPosixSocketAddressIpv4(address_info_list->ai_addr);
-  }
-
-  freeaddrinfo(address_info_list);
-
-  return host_address;
 }
 
-sockaddr_in *
-copyPosixSocketAddressIpv4(const sockaddr * address)
+TcpSocket::TcpSocket(const std::string& host_name, const std::string& port)
 {
-  sockaddr_in *result = (sockaddr_in*) malloc(sizeof(sockaddr_in));
-  memcpy(result, address, sizeof(sockaddr_in));
-  return result;
+  connect(host_name, port);
+}
+
+TcpSocket::~TcpSocket()
+{
+  close(file_descriptor);
+}
+
+void
+TcpSocket::connect(const std::string& host_name, const std::string& port)
+{
+  this->TcpSocket::connect(host_name.c_str(), port.c_str());
+}
+
+void
+TcpSocket::connect(const char* host_name, const char* port)
+{
+  file_descriptor = create_and_connect_stream_socket(host_name, port, INET_PROTOCOL_BOTH, 0);
+
+  if(file_descriptor == -1)
+    {
+      SocketException exception("could not create socket");
+      throw exception;
+    }
+  isConnected = true;
+}
+
+int
+TcpSocket::send(SocketBuffer buffer, int flags) const
+{
+  return ::send(file_descriptor, buffer.data(), buffer.size(), flags);
+}
+
+int
+TcpSocket::receive(SocketBuffer buffer, int flags) const
+{
+  return ::recv(file_descriptor, buffer.data(), buffer.size(), flags);
+}
+
+void
+TcpSocket::sendString(const std::string& message) const
+{
+  int data_size = message.length() +1;
+  int amount_of_data_written = 0;
+  int write_chunk_size = 4096;
+  int amount_of_data_to_write = 0;
+  const char *data_ptr = message.c_str();
+  const char *cur_pos = data_ptr;
+
+  while(data_size > 0)
+    {
+      if(data_size > write_chunk_size) amount_of_data_to_write = write_chunk_size;
+      else amount_of_data_to_write = data_size;
+      amount_of_data_written = write(file_descriptor, cur_pos, amount_of_data_to_write);
+      data_size -= amount_of_data_written;
+      cur_pos += amount_of_data_written;
+    }
+  std::cout << "string successfull sent" << std::endl;
+}
+
+std::unique_ptr<std::string>
+TcpSocket::readString() const
+{
+  std::string* message = new std::string();
+  int buffer_size = 512;
+  char buffer[buffer_size];
+  memset(buffer, 0, buffer_size);
+  int amount_read_data = buffer_size;
+  while(amount_read_data > 0)
+    {
+      amount_read_data = ::read(file_descriptor, buffer, buffer_size);
+      if(amount_read_data < 0) break;
+      message->append(buffer,amount_read_data);
+      if (amount_read_data < buffer_size && buffer[amount_read_data-1] == '\n') break;
+    }
+  return std::unique_ptr<std::string>(message);
 }

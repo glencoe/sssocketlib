@@ -1,0 +1,7 @@
+cmake_minimum_required (VERSION 2.6)
+project (sssocketlib)
+set(CMAKE_CXX_STANDARD 11)
+add_subdirectory(src)
+set(CMAKE_EXPORT_COMPILE_COMMAND ON)
+#enable_testing()
+#add_subdirectory(test)
