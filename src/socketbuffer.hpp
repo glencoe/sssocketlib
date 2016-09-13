@@ -1,21 +1,28 @@
 #ifndef SOCKETBUFFER_HPP
 #define SOCKETBUFFER_HPP
 
-#include <vector>
+#include <streambuf>
+#include <memory>
+
 
 namespace sssocket
 {
-  using std::vector;
 
-  class SocketBuffer
+  class SocketBuffer : public std::streambuf
   {
   public:
-    SocketBuffer(int size);
-    char * data();
-    int size() const;
+    SocketBuffer(int socket_file_descriptor);
+    void setSocketFileDescriptor(int socket_file_descriptor);
+
+  protected:
+    virtual int_type underflow();
 
   private:
-    vector<char> buffer;
+    static const int read_buffer_size = 1024;
+    static const int put_back_size = 1;
+    char read_buffer[read_buffer_size];
+    int file_descriptor;
+
 
   };
 

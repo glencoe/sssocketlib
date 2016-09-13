@@ -1,11 +1,11 @@
 #include "tcpsocket.hpp"
 #include "socketexception.hpp"
+#include "socketbuffer.hpp"
 #include <cstring>
-#include <sstream>
 #include <iostream>
-#include <iterator>
-#include <vector>
+#include <istream>
 #include <unistd.h>
+#include <stropts.h>
 
 using namespace sssocket;
 
@@ -13,10 +13,13 @@ TcpSocket::TcpSocket()
   : file_descriptor(-1)
   , host_name("")
   , isConnected(false)
+  , read_buffer(nullptr)
 {
+  read_buffer = std::unique_ptr<SocketBuffer>(new SocketBuffer(file_descriptor));
 }
 
 TcpSocket::TcpSocket(const std::string& host_name, const std::string& port)
+  :TcpSocket()
 {
   connect(host_name, port);
 }
@@ -43,18 +46,25 @@ TcpSocket::connect(const char* host_name, const char* port)
       throw exception;
     }
   isConnected = true;
+  read_buffer->setSocketFileDescriptor(file_descriptor);
 }
 
 int
-TcpSocket::send(void *buffer, int buffer_len, int flags) const
+TcpSocket::send(const char *buffer, int buffer_len, int flags) const
 {
   return ::send(file_descriptor, buffer, buffer_len, flags);
 }
 
 int
-TcpSocket::receive(void *buffer, int buffer_len, int flags) const
+TcpSocket::receive(char *buffer, int buffer_len, int flags) const
 {
   return ::recv(file_descriptor, buffer, buffer_len, flags);
+}
+
+int
+TcpSocket::read(char* buffer, int buffer_len) const
+{
+  return ::read(file_descriptor, buffer, buffer_len);
 }
 
 void
@@ -75,23 +85,20 @@ TcpSocket::sendString(const std::string& message) const
       data_size -= amount_of_data_written;
       cur_pos += amount_of_data_written;
     }
-  std::cout << "string successfull sent" << std::endl;
 }
 
 std::unique_ptr<std::string>
-TcpSocket::readString() const
+TcpSocket::readLine()
 {
-  std::string* message = new std::string();
-  int buffer_size = 512;
-  char buffer[buffer_size];
-  memset(buffer, 0, buffer_size);
-  int amount_read_data = buffer_size;
-  while(amount_read_data > 0)
+  std::istream stream(read_buffer.get());
+  std::string * message = new std::string();
+  char c = -1;
+  while(true)
     {
-      amount_read_data = ::read(file_descriptor, buffer, buffer_size);
-      if(amount_read_data < 0) break;
-      message->append(buffer,amount_read_data);
-      if (amount_read_data < buffer_size && buffer[amount_read_data-1] == '\n') break;
+      stream.get(c);
+      if(c== '\n') break;
+      message->push_back(c);
     }
   return std::unique_ptr<std::string>(message);
+
 }

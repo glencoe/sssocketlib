@@ -17,6 +17,14 @@ namespace sssocket
     std::string message;
   };
 
+  enum class SocketError
+  {
+    Temporary
+      , Closed
+      , Refused
+      , HostNotFound
+  };
+
 }
 
 #endif /* SOCKETEXCEPTION_H */

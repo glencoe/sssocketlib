@@ -12,8 +12,8 @@
 #include <vector>
 
 /* our headers */
-#include "socketbuffer.hpp"
 #include "C/socket.h"
+#include "socketbuffer.hpp"
 
 namespace sssocket
 {
@@ -22,8 +22,6 @@ namespace sssocket
   class TcpSocket
   {
 
-    using address_type = std::shared_ptr<sockaddr_in>;
-
   public:
     TcpSocket();
     TcpSocket(const string& host_name, const string& port);
@@ -31,20 +29,19 @@ namespace sssocket
     void connect(const string& host_name, const string& port_number);
     void connect(const char* host_name, const char* port);
     void sendString(const std::string& message) const;
-    std::unique_ptr<std::string> readString() const;
-    int send(void *buffer, int buffer_len, int flags = 0) const;
-    int receive(void *buffer, int buffer_len, int flags = 0) const;
+    std::unique_ptr<std::string> readLine();
+    int send(const char *buffer, int buffer_len, int flags = 0) const;
+    int receive(char *buffer, int buffer_len, int flags = 0) const;
+    int read(char *buffer, int buffer_len) const;
 
   private:
     int file_descriptor;
     string host_name;
     string port;
     bool isConnected;
+    std::unique_ptr<SocketBuffer> read_buffer;
   };
 
-  /* helper functions */
-  sockaddr_in *getHostAddressByNameIpv4(const char* host_name, const char* port);
-  sockaddr_in *copyPosixSocketAddressIpv4(const sockaddr *address);
 }
 
 #endif /* end of include guard: TCPSOCKET_HPP */
