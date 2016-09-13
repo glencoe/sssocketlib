@@ -87,6 +87,19 @@ TcpSocket::sendString(const std::string& message) const
     }
 }
 
+void
+TcpSocket::writeString(const std::string& message) const
+{
+  sendString(message);
+}
+
+void
+TcpSocket::writeLine(const std::string& message) const
+{
+  writeString(message);
+  writeString("\n");
+}
+
 std::unique_ptr<std::string>
 TcpSocket::readLine()
 {

@@ -29,7 +29,9 @@ namespace sssocket
     void connect(const string& host_name, const string& port_number);
     void connect(const char* host_name, const char* port);
     void sendString(const std::string& message) const;
+    void writeString(const string& message) const;
     std::unique_ptr<std::string> readLine();
+    void writeLine(const std::string& message) const;
     int send(const char *buffer, int buffer_len, int flags = 0) const;
     int receive(char *buffer, int buffer_len, int flags = 0) const;
     int read(char *buffer, int buffer_len) const;
@@ -41,7 +43,6 @@ namespace sssocket
     bool isConnected;
     std::unique_ptr<SocketBuffer> read_buffer;
   };
-
 }
 
 #endif /* end of include guard: TCPSOCKET_HPP */
