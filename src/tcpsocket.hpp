@@ -10,6 +10,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <mutex>
 
 /* our headers */
 #include "C/socket.h"
@@ -18,6 +19,9 @@
 namespace sssocket
 {
   using std::string;
+  using std::unique_ptr;
+  using std::mutex;
+  using std::lock_guard;
 
   class TcpSocket
   {
@@ -28,10 +32,10 @@ namespace sssocket
     ~TcpSocket();
     void connect(const string& host_name, const string& port_number);
     void connect(const char* host_name, const char* port);
-    void sendString(const std::string& message) const;
+    void sendString(const string& message) const;
     void writeString(const string& message) const;
-    std::unique_ptr<std::string> readLine();
-    void writeLine(const std::string& message) const;
+    unique_ptr<string> readLine();
+    void writeLine(const string& message) const;
     int send(const char *buffer, int buffer_len, int flags = 0) const;
     int receive(char *buffer, int buffer_len, int flags = 0) const;
     int read(char *buffer, int buffer_len) const;
@@ -42,6 +46,8 @@ namespace sssocket
     string port;
     bool isConnected;
     std::unique_ptr<SocketBuffer> read_buffer;
+    mutable mutex socket_mutex;
+
   };
 }
 

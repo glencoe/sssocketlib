@@ -38,6 +38,12 @@ TcpSocket::connect(const std::string& host_name, const std::string& port)
 void
 TcpSocket::connect(const char* host_name, const char* port)
 {
+  lock_guard<mutex> lock(socket_mutex);
+  if (file_descriptor > 0)
+    {
+      close(file_descriptor);
+      file_descriptor = -1;
+    }
   file_descriptor = create_and_connect_stream_socket(host_name, port, INET_PROTOCOL_BOTH, 0);
 
   if(file_descriptor == -1)
@@ -52,24 +58,28 @@ TcpSocket::connect(const char* host_name, const char* port)
 int
 TcpSocket::send(const char *buffer, int buffer_len, int flags) const
 {
+  lock_guard<mutex> lock(socket_mutex);
   return ::send(file_descriptor, buffer, buffer_len, flags);
 }
 
 int
 TcpSocket::receive(char *buffer, int buffer_len, int flags) const
 {
+  lock_guard<mutex> lock(socket_mutex);
   return ::recv(file_descriptor, buffer, buffer_len, flags);
 }
 
 int
 TcpSocket::read(char* buffer, int buffer_len) const
 {
+  lock_guard<mutex> lock(socket_mutex);
   return ::read(file_descriptor, buffer, buffer_len);
 }
 
 void
 TcpSocket::sendString(const std::string& message) const
 {
+  lock_guard<mutex> lock(socket_mutex);
   int data_size = message.length() +1;
   int amount_of_data_written = 0;
   int write_chunk_size = 4096;
@@ -103,6 +113,7 @@ TcpSocket::writeLine(const std::string& message) const
 std::unique_ptr<std::string>
 TcpSocket::readLine()
 {
+  lock_guard<mutex> lock(socket_mutex);
   std::istream stream(read_buffer.get());
   std::string * message = new std::string();
   char c = -1;

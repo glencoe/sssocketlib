@@ -1,3 +1,6 @@
 add_library(sssocketlib tcpsocket.cpp socketexception.cpp C/socket.c socketbuffer.cpp)
-add_executable(main main.cpp)
-target_link_libraries(main sssocketlib)
+install(TARGETS sssocketlib DESTINATION sssocketlib)
+install(FILES tcpsocket.hpp socketexception.hpp C/socket.h socketbuffer.hpp DESTINATION include/sssocketlib)
+add_executable(socketmain main.cpp)
+target_link_libraries(socketmain sssocketlib)
+install(TARGETS socketmain DESTINATION bin)

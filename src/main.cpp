@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
   TcpSocket socket;
   socket.connect(argv[1], argv[2]);
   cout << *socket.readLine() << endl;
-  socket.sendString(string(argv[3]));
+  socket.writeLine(string(argv[3]));
   auto s = socket.readLine();
   while (*s != "OK" )
     {
